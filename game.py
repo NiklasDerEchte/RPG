@@ -1,5 +1,6 @@
 import pygame
 from settings import *
+from sprite import *
 from obstacle import *
 from map import *
 from player import *
@@ -14,19 +15,14 @@ class Game:
     def new_game(self):
         self.isRunning = True
         self.clock = pygame.time.Clock()
-        self.player = Player()
+        self.playerSprite = Sprite("assets/Patreon sprites 1/3.png", width=192, height=256, col=4, row=4, offsetLeft=9, offestTop=18, offestBottom=15, offsetRight=19)
+        self.player = Player(self.playerSprite.width, self.playerSprite.height)
         self.allSprites = pygame.sprite.Group()
         self.obstacleSprites = pygame.sprite.Group()
         self.allSprites.add(self.player)
         self.load_map("assets/map/home.tmx")
         self.camera = Camera(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
-    def load_sprite_sheet(self, filename, col, row):
-        sprite = pygame.image.load(filename).convert_alpha()
-        spriteWidth = sprite.rect.width / row
-        spriteHeight = sprite.rect.height / col
-
-        pass
 
     def load_map(self, filename):
         self.tileMap = TileMap(filename)
@@ -46,7 +42,6 @@ class Game:
     def loop(self):
         while(self.isRunning):
             self.clock.tick(fps)
-            print(self.clock.get_fps())
             self.update()
             self.collide()
             self.draw()
@@ -68,12 +63,13 @@ class Game:
     def draw(self):
         self.window.fill(black)
         self.window.blit(self.map, self.camera.apply(self.map.get_rect()))
-        for sprite in self.allSprites.sprites():
-            pygame.draw.rect(self.window, sprite.color, self.camera.apply(sprite.rect))
+        self.playerSprite.draw(self.window, self.camera.apply(self.player.rect), self.player.direction)
+        pygame.draw.rect(self.window, purple, self.camera.apply(self.player.rect), 1)
         pygame.display.flip()
 
     def update(self):
         self.allSprites.update()
+        self.playerSprite.isMoving = self.player.isMoving
         self.camera.update(self.player)
 
 game = Game()

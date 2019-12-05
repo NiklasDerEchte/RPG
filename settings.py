@@ -9,8 +9,6 @@ MAX_WIDTH = tileSize * mapWidth
 
 FPS = fps = 60
 
-playerXSize = 25
-playerYSize = 25
 playerSpeed = 3
 
 blue = (0, 36, 179)
