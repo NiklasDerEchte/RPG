@@ -16,3 +16,5 @@ black = (0, 0, 0)
 yellow = (179, 158, 0)
 green = (3, 252, 3)
 purple = (252, 3, 240)
+
+DEBUG = False
