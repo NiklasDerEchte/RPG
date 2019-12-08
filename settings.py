@@ -7,7 +7,7 @@ WINDOW_HEIGHT = windowYSize = 400
 MAX_HEIGHT = tileSize * mapHeight
 MAX_WIDTH = tileSize * mapWidth
 
-FPS = fps = 60
+FPS = fps = 70
 
 playerSpeed = 3
 
