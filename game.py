@@ -5,12 +5,17 @@ from obstacle import *
 from map import *
 from player import *
 from port import *
+from spawn import *
+from charakter import *
 class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("RPG")
+        self.man = parse_charakter(mann)
+        allCharakter.add(self.man)
         self.window = pygame.display.set_mode((windowXSize, windowYSize))
-        self.start_level("home")
+        self.curMap = "home"
+        self.start_level(self.curMap)
         self.loop()
 
     def start_level(self, filename):
@@ -21,15 +26,17 @@ class Game:
         self.allSprites = pygame.sprite.Group()
         self.obstacleSprites = pygame.sprite.Group()
         self.ports = pygame.sprite.Group()
+        self.playerSpawns = pygame.sprite.Group()
         self.allSprites.add(self.player)
-        self.load_map("assets/map/" + filename + ".tmx")
+        self.load_map(filename,"assets/map/" + filename + ".tmx")
         self.camera = Camera(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         self.spritePosition = pygame.Rect(self.player.rect.x, self.player.rect.y - (self.playerSprite.spriteHeight / 2),
                                           self.playerSprite.height, self.playerSprite.width)
+        self.curMap = filename
 
 
-    def load_map(self, filename):
-        self.tileMap = TileMap(filename)
+    def load_map(self, filename, path):
+        self.tileMap = TileMap(path)
         self.map = self.tileMap.make_map()
         for obj in self.tileMap.tmxdata.objects:
             if obj.name == 'wall':
@@ -40,21 +47,44 @@ class Game:
                 obstacle.rect.height = obj.height
                 self.obstacleSprites.add(obstacle)
             elif obj.name == 'player':
-                self.player.rect.x = obj.x
-                self.player.rect.y = obj.y
+                spawn = Spawn(obj.x, obj.y, obj.width, obj.height)
+                spawn.type = obj.type
+                self.playerSpawns.add(spawn)
             elif obj.name == 'port':
                 port = Port(obj.x, obj.y, obj.width, obj.height)
                 port.nextMap = obj.type
                 self.ports.add(port)
 
+        for spawn in self.playerSpawns:
+            if SPAWN_MAP == filename and self.curMap == filename:
+                if spawn.type == "spawn":
+                    self.player.rect.x = spawn.rect.x
+                    self.player.rect.y = spawn.rect.y
+                    break
+            else:
+                if self.curMap == spawn.type:
+                    self.player.rect.x = spawn.rect.x
+                    self.player.rect.y = spawn.rect.y
+                    break
+
 
     def debug_mode(self):
         pygame.draw.rect(self.window, purple, self.camera.apply(self.player.rect), 1)
+        pygame.draw.rect(self.window, purple, self.camera.apply(self.man.rect), 1)
         print(self.clock.get_fps())
+
+    def key_listener(self):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_e:
+                    charakter = get_colliding_charakter(self.player)
+                    if charakter != False:
+                        print(charakter.dialog.get_next_dialog())
 
     def loop(self):
         while(self.isRunning):
             self.clock.tick(fps)
+            self.key_listener()
             self.update()
             self.collide()
             self.draw()

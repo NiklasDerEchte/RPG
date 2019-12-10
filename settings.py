@@ -11,6 +11,8 @@ FPS = fps = 70
 
 playerSpeed = 3
 
+SPAWN_MAP = "home"
+
 blue = (0, 36, 179)
 black = (0, 0, 0)
 yellow = (179, 158, 0)
