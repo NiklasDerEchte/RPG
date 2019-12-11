@@ -74,22 +74,31 @@ class Game:
         print(self.clock.get_fps())
 
     def key_listener(self):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_e:
+        events = pygame.event.get()
+        for key in events:
+            if key.type == pygame.QUIT:
+                self.isRunning = False
+            elif key.type == pygame.KEYUP:
+                if key.key == pygame.K_e:
                     charakter = get_colliding_charakter(self.player)
                     if charakter != False:
-                        print(charakter.dialog.get_next_dialog())
+                        if charakter.dialog.has_dialog():
+                            self.draw_dialog(charakter.dialog.get_next_dialog())
 
     def loop(self):
         while(self.isRunning):
             self.clock.tick(fps)
-            self.key_listener()
             self.update()
             self.collide()
             self.draw()
-            self.close_listener()
+            self.key_listener()
         pygame.quit()
+
+    def draw_dialog(self, message):
+        font = pygame.font.SysFont('Comic Sans MS', 30)
+        text = font.render(message, True, (255, 128, 0))
+        print(message) # TODO: Message wird übermalt
+        self.window.blit(text, (0, 0))
 
     def collide(self):
         hits = pygame.sprite.spritecollide(self.player, self.obstacleSprites, False)
@@ -99,12 +108,6 @@ class Game:
         hits = pygame.sprite.spritecollide(self.player, self.ports, False)
         if hits:
             self.start_level(hits[0].nextMap)
-
-    def close_listener(self):
-        events = pygame.event.get()
-        for key in events:
-            if key.type == pygame.QUIT:
-                self.isRunning = False
 
     def draw(self):
         self.window.fill(black)

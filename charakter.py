@@ -10,6 +10,9 @@ class Charakter(pygame.sprite.Sprite):
     def load_img(self, sprite):
         self.sprite = sprite
 
+    def draw(self):
+        pass
+
 class Dialog:
     def __init__(self, dialogArray):
         self.dialog_array = dialogArray
@@ -24,7 +27,7 @@ class Dialog:
             self.dialog_pos = self.dialog_pos+1
             return dialog
         else:
-            return -1
+            return False
 
 
 allCharakter = pygame.sprite.Group()
