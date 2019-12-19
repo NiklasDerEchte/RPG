@@ -11,12 +11,16 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("RPG")
-        self.man = parse_charakter(mann)
-        allCharakter.add(self.man)
         self.window = pygame.display.set_mode((windowXSize, windowYSize))
         self.curMap = "home"
+        self.load_charakter()
         self.start_level(self.curMap)
         self.loop()
+
+    def load_charakter(self):
+        for id in charakter:
+            c = parse_charakter(id, self.window)
+            allCharakter.add(c)
 
     def start_level(self, filename):
         self.isRunning = True
@@ -54,6 +58,12 @@ class Game:
                 port = Port(obj.x, obj.y, obj.width, obj.height)
                 port.nextMap = obj.type
                 self.ports.add(port)
+            elif obj.name == "npc":
+                for charakter in allCharakter:
+                    if charakter.id == obj.type:
+                        charakter.rect.x = obj.x
+                        charakter.rect.y = obj.y
+                        break
 
         for spawn in self.playerSpawns:
             if SPAWN_MAP == filename and self.curMap == filename:
@@ -70,20 +80,36 @@ class Game:
 
     def debug_mode(self):
         pygame.draw.rect(self.window, purple, self.camera.apply(self.player.rect), 1)
-        pygame.draw.rect(self.window, purple, self.camera.apply(self.man.rect), 1)
+        for charakter in allCharakter:
+            if charakter.map == self.curMap:
+                pygame.draw.rect(self.window, purple, self.camera.apply(charakter.rect), 1)
         print(self.clock.get_fps())
 
     def key_listener(self):
+        global DEBUG
         events = pygame.event.get()
         for key in events:
             if key.type == pygame.QUIT:
                 self.isRunning = False
             elif key.type == pygame.KEYUP:
                 if key.key == pygame.K_e:
-                    charakter = get_colliding_charakter(self.player)
-                    if charakter != False:
-                        if charakter.dialog.has_dialog():
-                            self.draw_dialog(charakter.dialog.get_next_dialog())
+                    self.key_e_up()
+                elif key.key == pygame.K_F1:
+                    DEBUG = not DEBUG
+
+    def key_e_up(self):
+        charakter = get_colliding_charakter(self.player)
+        if charakter and charakter.map == self.curMap:
+            if not charakter.isDialogStarted:
+                charakter.isDialogStarted = True
+                self.player.canMove = False
+            else:
+                if charakter.dialog.has_dialog():
+                    charakter.dialog.get_next_dialog()
+                else:
+                    charakter.isDialogStarted = False
+                    charakter.dialog.reset()
+                    self.player.canMove = True
 
     def loop(self):
         while(self.isRunning):
@@ -93,12 +119,6 @@ class Game:
             self.draw()
             self.key_listener()
         pygame.quit()
-
-    def draw_dialog(self, message):
-        font = pygame.font.SysFont('Comic Sans MS', 30)
-        text = font.render(message, True, (255, 128, 0))
-        print(message) # TODO: Message wird übermalt
-        self.window.blit(text, (0, 0))
 
     def collide(self):
         hits = pygame.sprite.spritecollide(self.player, self.obstacleSprites, False)
@@ -112,6 +132,9 @@ class Game:
     def draw(self):
         self.window.fill(black)
         self.window.blit(self.map, self.camera.apply(self.map.get_rect()))
+        for charakter in allCharakter:
+            if charakter.map == self.curMap:
+                charakter.draw(self.camera, message_x=0, message_y=WINDOW_HEIGHT * 0.8)
         self.playerSprite.draw(self.window, self.camera.apply(self.spritePosition), self.player.direction)
         if DEBUG:
             self.debug_mode()
