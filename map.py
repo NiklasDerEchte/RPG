@@ -50,3 +50,8 @@ class Camera:
 
     def apply(self, rect):
         return rect.move(self.rect.topleft)
+
+    def apply_coord(self, x, y):
+        rect = pygame.Rect(x, y, 0, 0)
+        rect = self.apply(rect)
+        return (rect.x, rect.y)

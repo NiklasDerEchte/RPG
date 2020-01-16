@@ -7,6 +7,7 @@ from player import *
 from port import *
 from spawn import *
 from charakter import *
+from matrix import *
 class Game:
     def __init__(self):
         pygame.init()
@@ -25,8 +26,9 @@ class Game:
     def start_level(self, filename):
         self.isRunning = True
         self.clock = pygame.time.Clock()
+        self.matrix = Matrix(MAX_WIDTH, MAX_HEIGHT, tileSize)
         self.playerSprite = Sprite("assets/Patreon sprites 1/3.png", width=192, height=256, col=4, row=4, offsetLeft=9, offestTop=18, offestBottom=15, offsetRight=19)
-        self.player = Player(self.playerSprite.width, self.playerSprite.height/2)
+        self.player = Player(self.playerSprite.width, self.playerSprite.height/2, self.matrix)
         self.allSprites = pygame.sprite.Group()
         self.obstacleSprites = pygame.sprite.Group()
         self.ports = pygame.sprite.Group()
@@ -51,6 +53,7 @@ class Game:
                 obstacle.rect.height = obj.height
                 self.obstacleSprites.add(obstacle)
             elif obj.name == 'player':
+                obj.x, obj.y = self.matrix.position_reset(obj.x, obj.y)
                 spawn = Spawn(obj.x, obj.y, obj.width, obj.height)
                 spawn.type = obj.type
                 self.playerSpawns.add(spawn)
@@ -61,6 +64,7 @@ class Game:
             elif obj.name == "npc":
                 for charakter in allCharakter:
                     if charakter.id == obj.type:
+                        obj.x, obj.y = self.matrix.position_reset(obj.x, obj.y)
                         charakter.rect.x = obj.x
                         charakter.rect.y = obj.y
                         break
@@ -70,11 +74,13 @@ class Game:
                 if spawn.type == "spawn":
                     self.player.rect.x = spawn.rect.x
                     self.player.rect.y = spawn.rect.y
+                    self.player.next_tile_pos = self.matrix.get_tile_position(spawn.rect.x, spawn.rect.y)
                     break
             else:
                 if self.curMap == spawn.type:
                     self.player.rect.x = spawn.rect.x
                     self.player.rect.y = spawn.rect.y
+                    self.player.next_tile_pos = self.matrix.get_tile_position(spawn.rect.x, spawn.rect.y)
                     break
 
 
@@ -84,6 +90,7 @@ class Game:
             if charakter.map == self.curMap:
                 pygame.draw.rect(self.window, purple, self.camera.apply(charakter.rect), 1)
         print(self.clock.get_fps())
+        self.matrix.debug(self.window, self.camera)
 
     def key_listener(self):
         global DEBUG
@@ -121,13 +128,16 @@ class Game:
         pygame.quit()
 
     def collide(self):
+        self.player.rect.x, self.player.rect.y = self.matrix.get_coord(self.player.next_tile_pos[0],
+                                                                       self.player.next_tile_pos[1])
         hits = pygame.sprite.spritecollide(self.player, self.obstacleSprites, False)
         if hits:
-            self.player.rect.x = self.player.posX
-            self.player.rect.y = self.player.posY
+            self.player.next_tile_pos = self.player.cur_tile_pos
         hits = pygame.sprite.spritecollide(self.player, self.ports, False)
         if hits:
             self.start_level(hits[0].nextMap)
+        self.player.rect.x, self.player.rect.y = self.matrix.get_coord(self.player.cur_tile_pos[0],
+                                                                       self.player.cur_tile_pos[1])
 
     def draw(self):
         self.window.fill(black)
@@ -139,6 +149,7 @@ class Game:
         if DEBUG:
             self.debug_mode()
         pygame.display.flip()
+
 
     def update(self):
         self.allSprites.update()
