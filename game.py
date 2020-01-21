@@ -69,11 +69,11 @@ class Game:
         for spawn in self.playerSpawns:
             if SPAWN_MAP == filename and self.curMap == filename:
                 if spawn.type == "spawn":
-                    self.player.set_world_pos((spawn.rect.x, spawn.rect.y))
+                    self.player.set_world_pos(self.matrix.position_reset((spawn.rect.x, spawn.rect.y)))
                     break
             else:
                 if self.curMap == spawn.type:
-                    self.player.set_world_pos((spawn.rect.x, spawn.rect.y))
+                    self.player.set_world_pos(self.matrix.position_reset((spawn.rect.x, spawn.rect.y)))
                     break
 
 
@@ -149,13 +149,14 @@ class Game:
 
     def move_player(self):
         if self.player.is_moving:
-            for i in range(tileSize):
-                self.player.update_world_pos((self.player.rect.x + self.player.move_direction.x, self.player.rect.y + self.player.move_direction.y))
+            for i in range(int(tileSize/2)):
+                self.player.update_world_pos((self.player.rect.x + (self.player.move_direction.x * 2), self.player.rect.y + (self.player.move_direction.y  * 2)))
                 self.spritePosition.y = self.player.rect.y - (self.playerSprite.height / 2)
                 self.spritePosition.x = self.player.rect.x
                 self.camera.update(self.player)
                 self.draw()
                 pygame.event.clear()
+                pygame.time.wait(10)
 
 
     def update(self):

@@ -9,8 +9,6 @@ MAX_WIDTH = tileSize * mapWidth
 
 FPS = fps = 70
 
-playerSpeed = 3
-
 SPAWN_MAP = "home"
 
 blue = (0, 36, 179)

@@ -16,17 +16,6 @@ class Matrix():
         cur_x = 0
         cur_y = 0
 
-        for y in range(self.tile_y_amount):
-            if y*self.tile_size == coord_pos[1]:
-                cur_y = y
-
-        for x in range(self.tile_x_amount):
-            if x * self.tile_size == coord_pos[0]:
-                cur_x = x
-
-        if cur_y != 0 or cur_x != 0:
-            return cur_x, cur_y
-
         for x in range(self.tile_x_amount):
             if (coord_pos[0] < x * self.tile_size):
                 break
