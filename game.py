@@ -53,7 +53,6 @@ class Game:
                 obstacle.rect.height = obj.height
                 self.obstacleSprites.add(obstacle)
             elif obj.name == 'player':
-                obj.x, obj.y = self.matrix.position_reset(obj.x, obj.y)
                 spawn = Spawn(obj.x, obj.y, obj.width, obj.height)
                 spawn.type = obj.type
                 self.playerSpawns.add(spawn)
@@ -64,23 +63,17 @@ class Game:
             elif obj.name == "npc":
                 for charakter in allCharakter:
                     if charakter.id == obj.type:
-                        obj.x, obj.y = self.matrix.position_reset(obj.x, obj.y)
-                        charakter.rect.x = obj.x
-                        charakter.rect.y = obj.y
+                        charakter.rect.x, charakter.rect.y = self.matrix.position_reset((obj.x, obj.y))
                         break
 
         for spawn in self.playerSpawns:
             if SPAWN_MAP == filename and self.curMap == filename:
                 if spawn.type == "spawn":
-                    self.player.rect.x = spawn.rect.x
-                    self.player.rect.y = spawn.rect.y
-                    self.player.next_tile_pos = self.matrix.get_tile_position(spawn.rect.x, spawn.rect.y)
+                    self.player.set_world_pos((spawn.rect.x, spawn.rect.y))
                     break
             else:
                 if self.curMap == spawn.type:
-                    self.player.rect.x = spawn.rect.x
-                    self.player.rect.y = spawn.rect.y
-                    self.player.next_tile_pos = self.matrix.get_tile_position(spawn.rect.x, spawn.rect.y)
+                    self.player.set_world_pos((spawn.rect.x, spawn.rect.y))
                     break
 
 
@@ -89,7 +82,7 @@ class Game:
         for charakter in allCharakter:
             if charakter.map == self.curMap:
                 pygame.draw.rect(self.window, purple, self.camera.apply(charakter.rect), 1)
-        print(self.clock.get_fps())
+        print(self.player.cur_tile_pos)
         self.matrix.debug(self.window, self.camera)
 
     def key_listener(self):
@@ -123,21 +116,25 @@ class Game:
             self.clock.tick(fps)
             self.update()
             self.collide()
+            self.move_player()
             self.draw()
             self.key_listener()
         pygame.quit()
 
     def collide(self):
-        self.player.rect.x, self.player.rect.y = self.matrix.get_coord(self.player.next_tile_pos[0],
-                                                                       self.player.next_tile_pos[1])
+        hit = False
+        self.player.update_pos((self.player.cur_tile_pos + self.player.move_direction))
         hits = pygame.sprite.spritecollide(self.player, self.obstacleSprites, False)
         if hits:
-            self.player.next_tile_pos = self.player.cur_tile_pos
+            hit = True
         hits = pygame.sprite.spritecollide(self.player, self.ports, False)
         if hits:
             self.start_level(hits[0].nextMap)
-        self.player.rect.x, self.player.rect.y = self.matrix.get_coord(self.player.cur_tile_pos[0],
-                                                                       self.player.cur_tile_pos[1])
+            return
+        self.player.update_pos((self.player.cur_tile_pos - self.player.move_direction))
+        if hit:
+            self.player.move_direction.x = 0
+            self.player.move_direction.y = 0
 
     def draw(self):
         self.window.fill(black)
@@ -150,10 +147,20 @@ class Game:
             self.debug_mode()
         pygame.display.flip()
 
+    def move_player(self):
+        if self.player.is_moving:
+            for i in range(tileSize):
+                self.player.update_world_pos((self.player.rect.x + self.player.move_direction.x, self.player.rect.y + self.player.move_direction.y))
+                self.spritePosition.y = self.player.rect.y - (self.playerSprite.height / 2)
+                self.spritePosition.x = self.player.rect.x
+                self.camera.update(self.player)
+                self.draw()
+                pygame.event.clear()
+
 
     def update(self):
         self.allSprites.update()
-        self.playerSprite.isMoving = self.player.isMoving
+        self.playerSprite.isMoving = self.player.is_moving
         self.spritePosition.y = self.player.rect.y - (self.playerSprite.height / 2)
         self.spritePosition.x = self.player.rect.x
         self.camera.update(self.player)
