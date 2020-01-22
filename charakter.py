@@ -40,33 +40,65 @@ class Charakter(pygame.sprite.Sprite):
 
     def draw(self, camera, message_x = 0, message_y = 0):
         self.sprite.draw(self.window, camera.apply(self.rect), 0)
-        if self.isDialogStarted:
+        if self.isDialogStarted and self.dialog.get_current_message() != False:
             self.blit_text(self.window, self.name + ": " + self.dialog.get_current_message(), (message_x, message_y), self.__font, (255, 128, 0))
 
+class Message:
+    def __init__(self, message, id = "", dependent = ""):
+        self.__id = id
+        self.__message = message
+        self.__dependent = dependent
+
+    def is_valid(self, dependencies):
+        if not self.has_dependent() or len(dependencies) == 0:
+            return True
+        for dep in dependencies:
+            if dep == self.__dependent:
+                return True
+        return False
+
+    def get_id(self):
+        return self.__id
+
+    def has_id(self):
+        return len(self.__id) > 0
+
+    def get_message(self):
+        return self.__message
+
+    def has_dependent(self):
+        return len(self.__dependent) > 0
 
 class Dialog:
     def __init__(self, dialogArray):
         self.dialog_array = dialogArray
-        self.dialog_pos = 0
+        self.dialog_pos = -1
 
     def reset(self):
-        self.dialog_pos = 0
+        self.dialog_pos = -1
 
     def has_dialog(self):
         return self.dialog_pos < len(self.dialog_array)-1
 
     def get_current_message(self):
-        if self.dialog_pos > len(self.dialog_array):
+        if not self.has_dialog():
             return False
-        return self.dialog_array[self.dialog_pos]
+
+        return self.dialog_array[self.dialog_pos].get_message()
 
     def get_next_dialog(self):
+        global dependencies
+        for dep in dependencies:
+            print(dep)
         if self.has_dialog():
-            dialog = self.dialog_array[self.dialog_pos]
-            self.dialog_pos = self.dialog_pos+1
-            return dialog
-        else:
-            return False
+            if self.dialog_array[self.dialog_pos].is_valid(dependencies):
+                if self.dialog_array[self.dialog_pos].has_id():
+                    dependencies.append(self.dialog_array[self.dialog_pos].get_id())
+                dialog = self.dialog_array[self.dialog_pos].get_message()
+                self.dialog_pos = self.dialog_pos+1
+                return dialog
+
+        return False
 
 
 allCharakter = pygame.sprite.Group()
@@ -89,11 +121,12 @@ def get_colliding_charakter(player):
     else:
         return False
 
+dependencies = []
 
 charakter = {
     "man": {
         "name": "Vadder",
-        "m": ["Jo, erstmal ein gut cool in die Runde !", "Was macht denn die Frucht meines Samens hier ?"],
+        "m": [Message("Jo, erstmal ein gut cool in die Runde !"), Message("Cool", dependent = "TKKG")],
         "rect": [350, 300, 192/4, 256/4],
         "offset": [18, 10, 10, 20],
         "sprite": "assets/Patreon sprites 1/2.png",
@@ -101,7 +134,7 @@ charakter = {
     },
     "typ": {
             "name": "Typ",
-            "m": ["Raus mit de Viecher !"],
+            "m": [Message("Was geht mois ?", id = "TKKG")],
             "rect": [0, 0, 192/4, 256/4],
             "offset": [18, 10, 10, 20],
             "sprite": "assets/Patreon sprites 1/2.png",

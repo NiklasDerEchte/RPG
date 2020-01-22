@@ -103,6 +103,7 @@ class Game:
             if not charakter.isDialogStarted:
                 charakter.isDialogStarted = True
                 self.player.canMove = False
+                charakter.dialog.get_next_dialog()
             else:
                 if charakter.dialog.has_dialog():
                     charakter.dialog.get_next_dialog()
