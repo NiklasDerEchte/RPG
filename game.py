@@ -103,14 +103,17 @@ class Game:
             if not charakter.isDialogStarted:
                 charakter.isDialogStarted = True
                 self.player.canMove = False
-                charakter.dialog.get_next_dialog()
+                charakter.dialog.next_message()
             else:
                 if charakter.dialog.has_dialog():
-                    charakter.dialog.get_next_dialog()
+                    charakter.dialog.next_message()
                 else:
                     charakter.isDialogStarted = False
                     charakter.dialog.reset()
                     self.player.canMove = True
+            if charakter.dialog.get_current_message() == False:
+                charakter.isDialogStarted = False
+                self.player.canMove = True
 
     def loop(self):
         while(self.isRunning):

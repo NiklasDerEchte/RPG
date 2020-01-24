@@ -44,13 +44,14 @@ class Charakter(pygame.sprite.Sprite):
             self.blit_text(self.window, self.name + ": " + self.dialog.get_current_message(), (message_x, message_y), self.__font, (255, 128, 0))
 
 class Message:
-    def __init__(self, message, id = "", dependent = ""):
+    def __init__(self, message, id = "", dependent = "", skip = ""):
         self.__id = id
         self.__message = message
         self.__dependent = dependent
+        self.__skip = skip
 
     def is_valid(self, dependencies):
-        if not self.has_dependent() or len(dependencies) == 0:
+        if not self.has_dependent():
             return True
         for dep in dependencies:
             if dep == self.__dependent:
@@ -59,6 +60,13 @@ class Message:
 
     def get_id(self):
         return self.__id
+
+    def skip(self, dependencies):
+        if len(self.__skip) > 0:
+            for id in dependencies:
+                if id == self.__skip:
+                    return True
+        return False
 
     def has_id(self):
         return len(self.__id) > 0
@@ -72,33 +80,44 @@ class Message:
 class Dialog:
     def __init__(self, dialogArray):
         self.dialog_array = dialogArray
-        self.dialog_pos = -1
+        self.dialog_pos = 0
+        self.__current_dialog = ""
 
     def reset(self):
-        self.dialog_pos = -1
+        self.dialog_pos = 0
 
     def has_dialog(self):
-        return self.dialog_pos < len(self.dialog_array)-1
+        return self.dialog_pos < len(self.dialog_array)
 
     def get_current_message(self):
-        if not self.has_dialog():
-            return False
+        return self.__current_dialog
 
-        return self.dialog_array[self.dialog_pos].get_message()
-
-    def get_next_dialog(self):
+    def __add_id(self, id):
         global dependencies
-        for dep in dependencies:
-            print(dep)
+        for i in dependencies:
+            if i == id:
+                return
+        dependencies.append(id)
+
+    def next_message(self):
+        global dependencies
         if self.has_dialog():
             if self.dialog_array[self.dialog_pos].is_valid(dependencies):
-                if self.dialog_array[self.dialog_pos].has_id():
-                    dependencies.append(self.dialog_array[self.dialog_pos].get_id())
-                dialog = self.dialog_array[self.dialog_pos].get_message()
-                self.dialog_pos = self.dialog_pos+1
-                return dialog
+                if not self.dialog_array[self.dialog_pos].skip(dependencies):
+                    if self.dialog_array[self.dialog_pos].has_id():
+                        self.__add_id(self.dialog_array[self.dialog_pos].get_id())
+                    dialog = self.dialog_array[self.dialog_pos].get_message()
+                    self.dialog_pos = self.dialog_pos+1
+                    self.__current_dialog = dialog
+                    return
+                else:
+                    if self.dialog_array[self.dialog_pos].has_id():
+                        self.__add_id(self.dialog_array[self.dialog_pos].get_id())
+                    self.dialog_pos = self.dialog_pos + 1
+                    self.next_message()
+                    return
 
-        return False
+        self.__current_dialog = False
 
 
 allCharakter = pygame.sprite.Group()
@@ -126,7 +145,7 @@ dependencies = []
 charakter = {
     "man": {
         "name": "Vadder",
-        "m": [Message("Jo, erstmal ein gut cool in die Runde !"), Message("Cool", dependent = "TKKG")],
+        "m": [Message("Sprich mit dem Pisser oben", skip="TKKG"), Message("Cool", dependent = "TKKG")],
         "rect": [350, 300, 192/4, 256/4],
         "offset": [18, 10, 10, 20],
         "sprite": "assets/Patreon sprites 1/2.png",
@@ -134,7 +153,7 @@ charakter = {
     },
     "typ": {
             "name": "Typ",
-            "m": [Message("Was geht mois ?", id = "TKKG")],
+            "m": [Message("Piss dich", id = "TKKG")],
             "rect": [0, 0, 192/4, 256/4],
             "offset": [18, 10, 10, 20],
             "sprite": "assets/Patreon sprites 1/2.png",
