@@ -2,8 +2,8 @@ tileSize = 32
 mapWidth = 30
 mapHeight = 30
 
-WINDOW_WIDTH = windowXSize = 500
-WINDOW_HEIGHT = windowYSize = 400
+WINDOW_WIDTH = 500
+WINDOW_HEIGHT = 400
 MAX_HEIGHT = tileSize * mapHeight
 MAX_WIDTH = tileSize * mapWidth
 

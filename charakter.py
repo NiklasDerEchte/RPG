@@ -22,8 +22,8 @@ class Charakter(pygame.sprite.Sprite):
     def blit_text(self, surface, text, pos, font, color):
         words = [word.split(' ') for word in text.splitlines()]
         space = font.size(' ')[0]
-        max_width = windowYSize
-        max_height = windowXSize
+        max_width = WINDOW_HEIGHT
+        max_height = WINDOW_WIDTH
         x, y = pos
         word_height = 0
         for line in words:

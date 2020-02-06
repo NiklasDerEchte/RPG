@@ -12,7 +12,7 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("RPG")
-        self.window = pygame.display.set_mode((windowXSize, windowYSize))
+        self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.curMap = "home"
         self.load_charakter()
         self.start_level(self.curMap)
@@ -82,6 +82,8 @@ class Game:
         for charakter in allCharakter:
             if charakter.map == self.curMap:
                 pygame.draw.rect(self.window, purple, self.camera.apply(charakter.rect), 1)
+        for ob in self.obstacleSprites:
+            pygame.draw.rect(self.window, blue, self.camera.apply(ob.rect), 1)
         print(self.player.cur_tile_pos)
         self.matrix.debug(self.window, self.camera)
 
